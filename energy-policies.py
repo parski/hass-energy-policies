@@ -1,6 +1,11 @@
 """
 
+Copyright © Pär Strindevall 2022
+
+-----------------------------------
+
 Energy Policies
+
 -----------------------------------
 
 Fetches data from a Nord Pool sensor `sensor.nordpool` and creates 
@@ -14,6 +19,12 @@ Script should probably run once at midnight (00:00).
 
 Parameters:
 
+devices (Array): List of devices (dictionaries) to create policies for.
+
+-----------------------------------
+
+Device parameters:
+
 name (String): Name of policy excluding domain. Probably just the name of the device.
 
 required_daily (Bool): Will schedule device for a set number of hours for today.
@@ -24,8 +35,7 @@ factor_of_average (Float): Run if price is a factor of today's average price.
                            Between 0-1 where 0 is free and 1 is today's average 
                            electricity price.
 
------------------------------------
-Copyright © Pär Strindevall 2022
+price_under (Float): Run if price is under specified value.
 
 """
 
@@ -74,6 +84,16 @@ def hoursUnderAverageByFactor(threshold):
 
     return hoursUnderAverageByFactor
 
+def hoursUnderPrice(threshold):
+    pricesAndHours = list(zip(span, dates(len(span))))
+
+    hoursUnderThreshold = []
+    for priceAndHour in pricesAndHours:
+        if priceAndHour[0] < threshold:
+            hoursUnderThreshold.append(priceAndHour[1])
+
+    return hoursUnderThreshold
+
 def policyForDevice(device):
     if 'required_daily' in device:
         if device['required_daily'] == True:
@@ -86,6 +106,10 @@ def policyForDevice(device):
     if 'factor_of_average' in device:
         factor = device['factor_of_average']
         return hoursUnderAverageByFactor(factor)
+
+    if 'price_under' in device:
+        threshold = device['price_under']
+        return hoursUnderPrice(threshold)
 
     logger.error("Can't add policy for %s. Device needs more configuration.", device['name'])
 
