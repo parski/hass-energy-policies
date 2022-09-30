@@ -123,7 +123,7 @@ def setPolicyStateForDevice(device):
         return
 
     entity_id = "policy." + device['name']
-    hass.states.set(entity_id, policy)
+    hass.states.set(entity_id, datetime.datetime.now().isoformat(), { 'hours': policy })
 
 nordpool = hass.states.get("sensor.nordpool").as_dict()
 
